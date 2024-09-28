@@ -1,0 +1,166 @@
+<div class="p-5 relative background-container">
+  <div class="weather-card-left">
+    <h1 class="text-center text-2xl font-bold mb-4">WeatherWise</h1>
+    <form [formGroup]="searchForm" (ngSubmit)="searchByCity()" class="search-container">
+      <input type="text" formControlName="city" placeholder="Enter a City" aria-label="search" class="search-input" />
+      <button type="submit" class="search-button">Search</button>
+    </form>
+    <!-- settings -->
+    <div class="absolute top-2 right-3">
+      <button [matMenuTriggerFor]="settings" matTooltip="Settings" class="settings-button">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bolt"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><circle cx="12" cy="12" r="4"/></svg>
+      </button>
+      <mat-menu #settings="matMenu" class="settings-menu bg-blue-100 border border-gray-300 rounded-lg p-4">
+        <h4 class="text-lg font-bold mb-2">Settings</h4>
+        <h6 class="text-md font-semibold mb-1">Temperature:</h6>
+        <div class="flex-col justify-center">
+          <div class="border-b">
+            <button id="'&units=metric" (click)="changeMetricSystem('&units=metric')" class="settings-button hover:bg-blue-700 hover:shadow-lg hover:text-white py-2 px-3 mx-2 rounded-lg">
+              Celsius
+            </button>
+          </div>
+          <div class="border-b">
+            <button id="'&units=imperial" (click)="changeMetricSystem('&units=imperial')" class="settings-button hover:bg-blue-700 hover:shadow-lg hover:text-white py-2 px-3 mx-2 rounded-lg">
+              Fahrenheit
+            </button>
+          </div>
+          <div class="border-y">
+            <button id="'&units=standard" (click)="changeMetricSystem('&units=standard')" class="settings-button hover:bg-blue-700 hover:shadow-lg hover:text-white py-2 px-3 mx-2 rounded-lg">
+              Kelvin
+            </button>
+          </div>
+          <h6 class="text-md font-semibold mb-1">Time Format:</h6>
+          <div class="border-b">
+            <button (click)="changeTimeFormat('24-hour')" class="settings-button hover:bg-blue-700 hover:shadow-lg hover:text-white py-2 px-3 mx-2 rounded-lg">
+              24-Hour Format
+            </button>
+          </div>
+          <div class="border-b">
+            <button (click)="changeTimeFormat('12-hour')" class="settings-button hover:bg-blue-700 hover:shadow-lg hover:text-white py-2 px-3 mx-2 rounded-lg">
+              12-Hour Format
+            </button>
+          </div>
+        </div>
+      </mat-menu>
+    </div>
+    <div class="left-card">
+      <div *ngIf="!loading && weatherData; else loadingDisplay" class="px-5">
+        <div class="weather-info">
+          <h2 class="city-name">{{weatherData.name}}</h2>
+          <p class="country-name">{{weatherData.sys.country}}</p>
+          <img class="weather-icon-left" [src]="'https://openweathermap.org/img/wn/' + weatherData.weather[0].icon + '@2x.png'" alt="Weather Icon">
+          <p class="weather-condition">{{weatherData.weather[0].main}}</p>
+          <h2 class="temperature">{{weatherData.main.temp}}{{getMetricSymbol(metricSystem)}}</h2>
+          <p>Temperature</p>
+          <p>{{ currentDateTime | date: 'fullDate' }}</p>
+          <p>{{ currentDateTime | date: timeFormat === '24-hour' ? 'HH:mm:ss' : 'hh:mm:ss a' }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="horizontal-card upper-card">
+    <div *ngIf="!loading && weatherData; else loadingDisplay" class="px-5">
+      <div class="weather-info">
+        <div class="additional-info">
+          <div class="info-item info-item-card">
+            <h3>
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide inline -mt-1 -mr-1 lucide-cloud">
+                <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z" />
+              </svg>
+              {{weatherData.clouds.all}}%
+            </h3>
+            <p>Clouds</p>
+          </div>
+          <div class="info-item info-item-card">
+            <h3>
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide text-blue-500 inline -mt-1.5 -mr-1 lucide-droplet">
+                <path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z" />
+              </svg>
+              {{weatherData.main.humidity}}%
+            </h3>
+            <p>Humidity</p>
+          </div>
+          <div class="info-item info-item-card">
+            <h3>{{weatherData.wind.speed}}m/s</h3>
+            <p>Wind Speed</p>
+          </div>
+          <div class="info-item info-item-card">
+            <h4>{{weatherData.wind.deg}}° - {{getWindDirection(weatherData.wind.deg)}}</h4>
+            <p>Wind Direction</p>
+          </div>
+          <div class="info-item info-item-card temperature-range-card">
+            <h4>{{weatherData.main.temp_min}}{{getMetricSymbol(metricSystem)}}</h4>
+            <p>Min Temperature</p>
+          </div>
+          <!-- New card for max temperature -->
+          <div class="info-item info-item-card temperature-range-card">
+            <h4>{{weatherData.main.temp_max}}{{getMetricSymbol(metricSystem)}}</h4>
+            <p>Max Temperature</p>
+          </div>
+          <!-- New cards within the upper horizontal card -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="horizontal-card five-hour-card">
+    <div *ngIf="!loading && fiveHourForecastData; else loadingDisplay" class="px-5">
+      <div class="weather-info">
+        <div class="additional-info">
+          <div *ngFor="let forecast of fiveHourForecastData.list" class="info-item info-item-card">
+            <img class="weather-icon" [src]="'https://openweathermap.org/img/wn/' + forecast.weather[0].icon + '@2x.png'" alt="Weather Icon">
+            <p>{{ forecast.weather[0].description }}</p>
+            <p>{{ forecast.main.temp }}°{{ getMetricSymbol(metricSystem) }}</p>
+            <h4>{{ forecast.dt_txt | date: timeFormat === '24-hour' ? 'HH:mm' : 'hh:mm a' }}</h4>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="horizontal-card lower-card">
+    <div *ngIf="!loading && fiveHourForecastData; else loadingDisplay" class="px-5">
+      <div class="weather-info">
+        <div class="additional-info">
+          <div *ngFor="let forecast of forecastData.list" class="info-item info-item-card">
+            <img class="weather-icon" [src]="'https://openweathermap.org/img/wn/' + forecast.weather[0].icon + '@2x.png'" alt="Weather Icon">
+            <p>{{ forecast.weather[0].description }}</p>
+            <p>{{ forecast.main.temp }}°{{ getMetricSymbol(metricSystem) }}</p>
+            <h4>{{ forecast.dt_txt | date: 'shortDate' }}</h4>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #loadingDisplay>
+    <h3 class="text-center">Loading...</h3>
+  </ng-template>
+  <ng-template #locationNotFound>
+    <h1 class="text-center font-primary p-1">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide inline ms-1 -mt-0.5 lucide-search-x">
+        <path d="m13.5 8.5-5 5" />
+        <path d="m8.5 8.5 5 5" />
+        <circle cx="11" cy="11" r="8" />
+        <path d="m21 21-4.3-4.3" />
+      </svg>
+      Location not found.
+    </h1>
+  </ng-template>
+</div>
+
+<div class="area">
+  <ul class="circles">
+    <li></li>
+    <li></li>
+    <li></li>
+    <li></li>
+    <li></li>
+    <li></li>
+    <li></li>
+    <li></li>
+    <li></li>
+    <li></li>
+  </ul>
+</div>
